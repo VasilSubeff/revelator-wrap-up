@@ -7,4 +7,4 @@ Each entry links to a session file with deliverables, decisions, and follow-ups.
 
 ## netcore-analytics
 
-- [2026-06-29 — WMG Download Orchestrator](sessions/netcore-analytics/2026-06-29-wmg-download-orchestrator.md) — New CronJob orchestrator for Warner Music Group Spotify data via Analytics DAL microservice
+- [2026-06-29 — WMG Download Orchestrator](sessions/netcore-analytics/2026-06-29-wmg-download-orchestrator/summary.md) — New CronJob orchestrator for Warner Music Group Spotify data via Analytics DAL microservice ([plan](sessions/netcore-analytics/2026-06-29-wmg-download-orchestrator/plan.md))
