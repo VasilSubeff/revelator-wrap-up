@@ -21,6 +21,15 @@ Each entry links to a session file with deliverables, decisions, and follow-ups.
 - [2026-07-01 — WMG Downloader + move to ReportIngestion](sessions/netcore-report-ingestion/2026-07-01-wmg-downloader-reportingestion/summary.md) — Built WMG Spotify downloader (stage→landing via DAL), migrated orchestrator+downloader into the ReportIngestion stack, switched load to COPY INTO, long-running ack handling, configurable 2h timeouts ([move plan](sessions/netcore-report-ingestion/2026-07-01-wmg-downloader-reportingestion/plan.md), [copy-into plan](sessions/netcore-report-ingestion/2026-07-01-wmg-downloader-reportingestion/copy-into-plan.md))
 - [2026-07-06 — Apple + SoundCloud WMG downloads](sessions/netcore-report-ingestion/2026-07-06-apple-soundcloud-wmg-download/summary.md) — Generalized the WMG downloader to multi-source (Spotify+Apple+SoundCloud); per-report COPY-as-embedded-SQL, per-report FilePattern for shared dirs, tracking completeness+idempotency guards; diagnosed Apple 6/30–7/3 gap as upstream S3 non-delivery ([plan](sessions/netcore-report-ingestion/2026-07-06-apple-soundcloud-wmg-download/plan.md))
 
+## amazon-data-pulse
+
+- [2026-08-31 — Data Pulse → S3 → Snowpipe setup](sessions/amazon-data-pulse/2026-08-31-datapulse-s3-snowpipe-setup.md) — Athena UNLOAD from the Lake Formation share to own stage/prod buckets, `AWS_DATAPULSE` storage integration + IAM trust handshake done, test COPY into `REVELATOR_ALL.TEST`; pipes/event-notification DDL delivered, Music Central SQS-based automation planned
+- [2026-09-04 — AWS Pulse ingestion + full WMG migration](sessions/amazon-data-pulse/2026-09-04-aws-pulse-ingestion-wmg-migration.md) — WMG stack generalized into Netcore.Analytics (AwsDownloader/-Orchestrator + AmazonMusicDetectionOrchestrator: 30-day Athena partition diff vs S3 markers, UNLOAD NEW only); 5 PRs across 5 repos (#84/#605 merged), Etl/AmazonSFTP/DataPro removed, k8s deadline + Athena stop-on-cancel follow-ups (#608/#85)
+
 ## ibuprofen-formulation
 
 - [2026-08-10 — Ibuprofen 200 mg/5 mL f₂ dissolution analysis](sessions/ibuprofen-formulation/2026-08-10-ibuprofen-f2-analysis.md) — Reconstructed the 45-formulation Excel dataset, decoded the f₂ convention (rows 42/43 = f₂ vs each reference batch, 3-pt), found recorded-vs-recalculated discrepancies (best run E3П54 = 49.9/57.3, not 47.8), recommended S-250 + xanthan 0.60 with a 5-run DoE; Word report + charts + dataset in Downloads\Ibuprofen_analysis
+
+## revelator-bi-snowflake
+
+- [2026-09-09 — Music-video analytics: Apple video catalog, DSP video routing, ASSET_TYPE_ID to SingleStore](sessions/revelator-bi-snowflake/2026-09-09-music-video-analytics-asset-type.md) — Video twins of the Apple mismatch/catalog SPs (+ DAL PR #42); Spotify/Apple/Merlin loaders route music-video streams into VIDEO_VIEWS with SOURCE_OF_STREAM_ID (both-types IDs go to both facts); ASSET_TYPE_ID (1 track / 6 video) through base + six AGG transactions tables in DEV/STAGING, BASE/SingleStore DDL + all 40 STAGE pipelines recreated; RPS monthly ADF condition; endpoint read path still to resolve
