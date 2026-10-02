@@ -1,7 +1,7 @@
 # Analytics stage vs prod full parity run — 2026-10-02
 
 **Repo:** Netcore.Analytics  
-**Branch:** vasil/analytics-parity-report (PR #117, docs only)  
+**Branch:** none — report kept uncommitted in Netcore.Analytics; full copy lives in this folder  
 
 ## What we did
 
@@ -26,7 +26,7 @@
   - The rest were our own test calls (F-06, F-09).
   - Ingestion: the playlists downloader fails to open Snowflake (81× NullReferenceException) and logs an AMQP unknown delivery tag
     error.
-- Committed the report, the per-F curls (stage and prod) and the harness to `Netcore.Analytics/docs/parity/2026-10-02-analytics-stage-vs-prod/`.
+- Report, per-F stage/prod curls and finding log copied into this folder (`report.md`, `findings-with-curls.md`, `findings.md`, `report-readme.md`). Harness scripts stay uncommitted in `Netcore.Analytics/docs/parity/2026-10-02-analytics-stage-vs-prod/harness/`.
 
 ## Findings (almost all also happen on prod, so they are not regressions)
 
@@ -63,7 +63,7 @@ F-06 onlyNew > 5 s, F-08 granular sort ranks by best period, F-10 inconsistent e
 
 | File | Change |
 |---|---|
-| `docs/parity/2026-10-02-analytics-stage-vs-prod/README.md` | Overview, headline findings, how to re-run |
+| `docs/parity/2026-10-02-analytics-stage-vs-prod/README.md` (Netcore, uncommitted) | Overview, headline findings, how to re-run |
 | `.../report.md` | Full results, repro params, tie list, not-covered list |
 | `.../findings-with-curls.md` | Stage and prod curl per F case (tokens are env vars) |
 | `.../findings.md` | Finding log with root causes |
@@ -72,7 +72,6 @@ F-06 onlyNew > 5 s, F-08 granular sort ranks by best period, F-10 inconsistent e
 
 ## Still to do / follow-up
 
-- Merge PR #117 (Netcore.Analytics).
 - F-15: profile stage Movement quarterly/yearly track/release SQL against prod before the stage → prod deploy.
 - F-18: reproduce with a token that can see 971905. Trace `6abe76f000000000ea73cd4e7e8322b4`.
 - Fix candidates: F-02, F-07, F-09, F-11, F-12, F-13, F-14, F-16, F-17.
