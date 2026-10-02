@@ -1,7 +1,7 @@
 # Analytics stage vs prod full parity run — 2026-10-02
 
 **Repo:** Netcore.Analytics  
-**Branch:** none — report kept uncommitted in Netcore.Analytics; full copy lives in this folder  
+**Branch:** `vasil/analytics-parity-fixes` → [PR #118](https://github.com/Revelator-il/Netcore.Analytics/pull/118) (code fixes). The report lives only in this folder; it was removed from Netcore.Analytics.  
 
 ## What we did
 
@@ -26,7 +26,8 @@
   - The rest were our own test calls (F-06, F-09).
   - Ingestion: the playlists downloader fails to open Snowflake (81× NullReferenceException) and logs an AMQP unknown delivery tag
     error.
-- Report, per-F stage/prod curls and finding log copied into this folder (`report.md`, `findings-with-curls.md`, `findings.md`, `report-readme.md`). Harness scripts stay uncommitted in `Netcore.Analytics/docs/parity/2026-10-02-analytics-stage-vs-prod/harness/`.
+- Report, per-F stage/prod curls and finding log are in this folder (`report.md`, `findings-with-curls.md`, `findings.md` with the final outcome of every F, `report-readme.md`). The harness scripts are not kept in any repo; they were only in the session scratchpad.
+- Went through every F case with the user, one at a time, and fixed the real bugs in [PR #118](https://github.com/Revelator-il/Netcore.Analytics/pull/118) (549 unit tests pass).
 
 ## Findings (almost all also happen on prod, so they are not regressions)
 
@@ -47,6 +48,28 @@
 Minor findings: F-01 no deterministic default sort, F-03 the 403 says "Payee", F-05 Revenue id/name rename (intentional),
 F-06 onlyNew > 5 s, F-08 granular sort ranks by best period, F-10 inconsistent error bodies.
 
+## Outcome per finding
+
+| # | Outcome |
+|---|---|
+| F-01 | **Fixed:** no-granularity eventdate sort → main metric DESC; `PrimaryKey ASC` tie-breaker on every ORDER BY (Consumption, Engagement, AS, Revenue) |
+| F-02 | **Fixed:** handler uses `OrderByDeliveryTypeFieldMapping` |
+| F-03 | Accepted |
+| F-04 | Withdrawn (stage SingleStore outage) |
+| F-05 | Accepted (intentional rename) |
+| F-06 | Accepted. The real cause: with onlyNew the range-family playlists get **no date filter**, so the query scans all history |
+| F-07 | **Fixed:** `Iso2Code` in the country PrimaryKey. The DAL `[Key]` is PrimaryKey, so EF folded the two rows. The Engagement UGC + granularity variant (arbitrary label per period) is accepted |
+| F-08 | Accepted. Prod sorts the same way |
+| F-09 / F-14 | **Fixed:** `[Range]` paging on `PlaylistMovementsFilterDto` and `MovementFilterDto` |
+| F-10 | **Fixed:** Revenue dimension enum binder; Cyrillic ММ (still on stage in the AS dashboard) → MM; dates formatted yyyy-MM-dd |
+| F-11 | **Fixed:** handler forwards `consumptionTypeIds` |
+| F-12 | **Fixed:** exclude-distributor placeholder in the playlists fragment |
+| F-13 | **Fixed:** timeline query gets the page's `UniqueKeys` pairs |
+| F-15 | Left as-is. Identical responses and the same SQL as prod; stage SingleStore is slower (p95 5.2 s vs 2.2 s) |
+| F-16 | Withdrawn. False positive: the harness checked which rows were present, not their values |
+| F-17 | **Fixed:** dashboard item count taken from the ungrouped page query |
+| F-18 | Accepted. Not code: prod SingleStore WLM admission rejections at 15 s during capacity bursts |
+
 ## Key decisions
 
 - Rate-limit prod at 3 s per call with a cap per sitting. The user later approved raising it to 1,400 without stopping.
@@ -61,20 +84,16 @@ F-06 onlyNew > 5 s, F-08 granular sort ranks by best period, F-10 inconsistent e
 
 ## Files changed
 
-| File | Change |
+| Where | Change |
 |---|---|
-| `docs/parity/2026-10-02-analytics-stage-vs-prod/README.md` (Netcore, uncommitted) | Overview, headline findings, how to re-run |
-| `.../report.md` | Full results, repro params, tie list, not-covered list |
-| `.../findings-with-curls.md` | Stage and prod curl per F case (tokens are env vars) |
-| `.../findings.md` | Finding log with root causes |
-| `.../harness/*` | Runner, comparator, generators, report/curl builders |
-| `docs/superpowers/plans/2026-09-29-analytics-stage-vs-prod-parity-test-plan.md` | Test plan (rev 4); copied here as plan.md |
+| Netcore.Analytics PR #118 | 36 files: 4 query services, 5 country templates + playlists fragment, Engagement/Consumption/AS handlers, movements/Revenue filter DTOs, FilterUtilityHelper, controller docs, tests |
+| This folder | summary, plan, report, findings (final), findings-with-curls, report-readme |
+| `C:\Users\vasil\analytics-parity-F-cases.postman_collection.json` (local only, contains tokens) | Postman collection of every F case, with `stage_base`/`prod_base` variables |
 
 ## Still to do / follow-up
 
-- F-15: profile stage Movement quarterly/yearly track/release SQL against prod before the stage → prod deploy.
-- F-18: reproduce with a token that can see 971905. Trace `6abe76f000000000ea73cd4e7e8322b4`.
-- Fix candidates: F-02, F-07, F-09, F-11, F-12, F-13, F-14, F-16, F-17.
+- Merge PR #118, deploy to stage, re-run the F folders of the Postman collection on stage.
+- Expected differences from prod after deploy: default/tie ordering, country 2000 as two rows, pageSize > 2000 → 400 on movements, Revenue invalid dimension → ValidationProblemDetails.
+- Infra (not code): give `api_user_prod` its own SingleStore resource pool and stagger the pipeline maintenance steps (F-18); the DAL should log the real SingleStore error.
+- BI: why country id 2000 carries both ZZ and Unknown.
 - Ingestion: Snowflake NullReferenceException in the playlists downloader (`SnowflakeTrendsDownloadProvider.cs:34-37`).
-- Review the 190 parent ties. Re-run the 2 NOT RUN child tests with a fresh token.
-- The curls need fresh tokens (all had expired at commit time).
